@@ -2,38 +2,38 @@
 var apiKey = "9841675e8ee62468bc58ce932d8a907d";
 var savedSearches = [];
 
-// This is listing previously searched 
-var searchList = function(cityName) {
+// make list of previously searched cities
+var searchHistoryList = function(cityName) {
     $('.past-search:contains("' + cityName + '")').remove();
 
-    // City name entry what city are we looking in 
-    var searchListEntry = $("<p>");
-    searchListEntry.addClass("past-search");
-    searchListEntry.text(cityName);
+    // create entry with city name
+    var searchHistoryEntry = $("<p>");
+    searchHistoryEntry.addClass("past-search");
+    searchHistoryEntry.text(cityName);
 
-// create container for entry
-var searchEntryContainer = $("<div>");
-searchEntryContainer.addClass("past-search-container");
+    // create container for entry
+    var searchEntryContainer = $("<div>");
+    searchEntryContainer.addClass("past-search-container");
 
-// Append entry to container
-searchEntryContainer.append(searchHistoryEntry);
+    // append entry to container
+    searchEntryContainer.append(searchHistoryEntry);
 
-// Append entry container to search list container
-var searchListContainerEl = $("#search-history-container");
-searchListContainerEl.append(searchEntryContainer);
+    // append entry container to search history container
+    var searchHistoryContainerEl = $("#search-history-container");
+    searchHistoryContainerEl.append(searchEntryContainer);
 
-if (savedSearches.length > 0){
-    // update savedSearches array with previously saved searches
-    var previousSavedSearches = localStorage.getItem("savedSearches");
-    savedSearches = JSON.parse(previousSavedSearches);
-}
+    if (savedSearches.length > 0){
+        // update savedSearches array with previously saved searches
+        var previousSavedSearches = localStorage.getItem("savedSearches");
+        savedSearches = JSON.parse(previousSavedSearches);
+    }
 
-// add city name to array of saved searches
-savedSearches.push(cityName);
-localStorage.setItem("savedSearches", JSON.stringify(savedSearches));
+    // add city name to array of saved searches
+    savedSearches.push(cityName);
+    localStorage.setItem("savedSearches", JSON.stringify(savedSearches));
 
-// reset search input
-$("#search-input").val("");
+    // reset search input
+    $("#search-input").val("");
 
 };
 
@@ -55,6 +55,7 @@ var loadSearchHistory = function() {
         searchHistoryList(savedSearchHistory[i]);
     }
 };
+
 var currentWeatherSection = function(cityName) {
     // get and use data from open weather current weather api end point
     fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`)
@@ -67,7 +68,7 @@ var currentWeatherSection = function(cityName) {
             var cityLon = response.coord.lon;
             var cityLat = response.coord.lat;
 
-            fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${cityLat}&lon=${cityLon}&exclude=minutely,hourly,alerts&units=imperial&appid=${apiKey}`)
+            fetch("https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={apiKey}")
                 // get response from one call api and turn it into objects
                 .then(function(response) {
                     return response.json();
@@ -138,7 +139,7 @@ var fiveDayForecastSection = function(cityName) {
             var cityLon = response.coord.lon;
             var cityLat = response.coord.lat;
 
-            fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${cityLat}&lon=${cityLon}&exclude=minutely,hourly,alerts&units=imperial&appid=${apiKey}`)
+            fetch("https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={apiKey}")
                 // get response from one call api and turn it into objects
                 .then(function(response) {
                     return response.json();
@@ -197,17 +198,16 @@ $("#search-form").on("submit", function() {
     }
 });
 
-// Called when a search history entry is clicked
+// called when a search history entry is clicked
 $("#search-history-container").on("click", "p", function() {
     // get text (city name) of entry and pass it as a parameter to display weather conditions
     var previousCityName = $(this).text();
     currentWeatherSection(previousCityName);
     fiveDayForecastSection(previousCityName);
 
-    // Previous city 
+    //
     var previousCityClicked = $(this);
     previousCityClicked.remove();
 });
 
 loadSearchHistory();
-
